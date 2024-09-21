@@ -1,0 +1,158 @@
+package book;
+
+import java.util.List;
+import java.util.NoSuchElementException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class controller {
+	@Autowired
+	private service service;
+	@GetMapping("/book")
+	public List<book> list(){
+	return (List<book>) service.listAll();
+	}
+	@GetMapping("/book/{id}")
+	public ResponseEntity<book> get(@PathVariable Integer id){
+	try {
+		book book=service.get(id);
+	return new ResponseEntity<book>(book,HttpStatus.OK);
+	
+	 }catch (NoSuchElementException e){
+	return new ResponseEntity<book>(HttpStatus.NOT_FOUND);
+	 }
+	}
+	@PostMapping("/book")
+	public void add(@RequestBody book book) {
+	service.save(book);
+	}
+	@PutMapping("/book/{id}")
+	public ResponseEntity<?> update(@RequestBody book book, @PathVariable
+	Integer id) {
+	 try {
+		 book existBook = service.get(id);
+	 service.save(book);
+	 return new ResponseEntity<>(HttpStatus.OK);
+	 } catch (NoSuchElementException e) {
+	 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	 } 
+	}
+	@DeleteMapping("/book/{id}")
+	public void delete(@PathVariable Integer id) {
+	 service.delete(id);
+	}
+}
+***********************************************************************
+package book;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
+public class book {
+	 @Id
+	  @GeneratedValue(strategy = GenerationType.IDENTITY)
+private int id;
+private String name;
+private int price;
+public int getId() {
+	return id;
+}
+public void setId(int id) {
+	this.id = id;
+}
+public String getName() {
+	return name;
+}
+public void setName(String name) {
+	this.name = name;
+}
+public int getPrice() {
+	return price;
+}
+public void setPrice(int price) {
+	this.price = price;
+}
+@Override
+public String toString() {
+	return "book [id=" + id + ", name=" + name + ", price=" + price + "]";
+}
+public book() {
+	super();
+	// TODO Auto-generated constructor stub
+}
+}
+*************************************************************************
+
+package book;
+
+import org.springframework.data.repository.CrudRepository;
+
+public interface repository  extends CrudRepository<book, Integer> {
+
+}
+*************************************************************************
+
+package book;
+
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
+@Service
+@Transactional
+public class service {
+@Autowired
+private repository repo;
+public Iterable<book> listAll(){
+return repo.findAll();
+}
+public void save(book book) {
+repo.save(book);
+}
+public book get(Integer id) {
+return repo.findById(id).get();
+}
+public void delete(Integer id)
+{
+repo.deleteById(id);
+}
+}
+
+**************************************************************************
+
+package book;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class BookApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(BookApplication.class, args);
+	}
+
+}
+************************************************************************
+
+spring.application.name=book
+spring.jpa.hibernate.ddl-auto=none
+spring.datasource.url=jdbc:mysql://localhost:3306/msma
+spring.datasource.username=root
+spring.datasource.password=root
+server.port=9669
+
+*************************************************************************
+
